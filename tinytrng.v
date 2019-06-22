@@ -19,8 +19,8 @@
 
 module metastable
   (
-   input s_in,
-   input r_in,
+   input  s_in,
+   input  r_in,
    output q,
    output qb
    );
@@ -39,6 +39,8 @@ module metastable
    assign lnab = dla_out;
    assign lnbb = dlb_out;
 
+   // Nands make a RS flip flop.
+
    SB_LUT4 #(.LUT_INIT(16'd7))
    lna (
 	.O(lnay),
@@ -56,6 +58,8 @@ module metastable
 	.I2(1'b0),
 	.I3(1'b0)
 	);
+
+   // Delay lines. Delays are adjusted by hand and are hard coded ATM.
 
    SB_LUT4 #(.LUT_INIT(16'b10101010_10101010))
    dla (
