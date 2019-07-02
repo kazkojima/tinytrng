@@ -83,7 +83,8 @@ module metastable
 endmodule // metastable
 
 module tinytrng #(parameter integer NUM_UNITS = 1,
-		  parameter integer XCLK_DIV = 8)
+		  parameter integer XCLK_DIV = 16,
+		  localparam integer NUM_MEM = 16)
    (
     input  clk,
     input  resetn,
@@ -100,13 +101,21 @@ module tinytrng #(parameter integer NUM_UNITS = 1,
    reg 	      ff, ffb;
    reg [3:0]  p_cnt;
    reg [3:0]  latch;
+   reg [8:0]  sum;
+   reg [3:0]  mem_index;
+   reg [3:0]  mem [0:NUM_MEM-1];
+   reg 	      mem_fill;
+   reg [3:0]  avarage;
+   reg [2:0]  sdelay, rdelay;
    reg 	      mstable;
    wire       rsffq, rsffqb;
 
    assign random = latch[0];
-   assign pulse = latch[2];
-   assign tp = latch[3];
+   assign pulse = latch[1];
+   assign tp = metastable;
    assign bclk = xclk;
+
+   assign avarage = sum >> 4;
 
    always @(posedge clk) begin
       if (!resetn)
@@ -118,6 +127,11 @@ module tinytrng #(parameter integer NUM_UNITS = 1,
 	   ffb <= 0;
 	   p_cnt <= 0;
 	   latch <= 0;
+	   mem_index <= 0;
+	   mem_fill <= 0;
+	   sum <= 0;
+	   sdelay <= 0;
+	   rdelay <= 0;
 	   mstable <= 0;
 	end // if (!resetn)
       else
@@ -128,6 +142,33 @@ module tinytrng #(parameter integer NUM_UNITS = 1,
 		xclk_cycle <= xclk_cycle + 1;
 		xclk <= 0;
 		latch <= p_cnt;
+		sum <= (sum - (mem_fill ? mem[mem_index+1] : 0)) + p_cnt;
+		if (mem_index == NUM_MEM - 1)
+		  begin
+		     mem_fill <= 1;
+		  end
+		mem_index <= mem_index + 1;
+		if (mem_fill)
+		  begin
+		     if (avarage < 2)
+		       begin
+			  // ds up dr down
+			  sdelay <= { sdelay[1:0], 1 };
+			  rdelay <= { 0, rdelay[2:1] };
+			  metastable <= 0;
+		       end
+		     else if (avarage > 13)
+		       begin
+			  // ds down dr up
+			  sdelay <= { 0, sdelay[2:1] };
+			  rdelay <= { rdelay[1:0], 1 };
+			  metastable <= 0;
+		       end
+		     else
+		       begin
+			  metastable <= 1;
+		       end
+		  end
 		p_cnt <= 0;
 	     end
 	   else
@@ -149,8 +190,8 @@ module tinytrng #(parameter integer NUM_UNITS = 1,
 	   .r_in	(xclk	),
 	   .q		(rsffq	),
 	   .qb		(rsffqb	),
-	   .ds		(3'b100 ),
-	   .dr		(3'b000 )
+	   .ds		(sdelay ),
+	   .dr		(rdelay )
 	   );
 
 endmodule // tinytrng
