@@ -34,6 +34,9 @@ module hardware (
     // TP
     output pin_3,
 
+    // BCLK
+    output pin_4,
+
     // onboard LED
     output user_led,
 );
@@ -42,7 +45,7 @@ module hardware (
     assign pin_usbn = 1'b0;
 
     wire clk = clk_16mhz;
-  
+
     // Power-on Reset
     reg [5:0] reset_cnt = 0;
     wire resetn = &reset_cnt;
@@ -53,7 +56,7 @@ module hardware (
 
     tinytrng #(
         .NUM_UNITS(1),		// use 1 unit by default
-	.XCLK_DIV(8)		// use 16/8=2MHz xclk by default
+	.XCLK_DIV(16)		// use 16/16=1MHz xclk by default
     ) trng (
         .clk          (clk         ),
 	.resetn       (resetn      ),
@@ -61,5 +64,6 @@ module hardware (
         .random       (pin_1       ),
         .pulse        (pin_2       ),
         .tp           (pin_3       ),
+        .bclk         (pin_4       ),
     );
 endmodule
