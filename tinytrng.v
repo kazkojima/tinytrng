@@ -142,7 +142,8 @@ module tinytrng #(parameter integer NUM_UNITS = 1,
 		xclk_cycle <= xclk_cycle + 1;
 		xclk <= 0;
 		latch <= p_cnt;
-		sum <= (sum - (mem_fill ? mem[mem_index+1] : 0)) + p_cnt;
+		sum <= (sum - (mem_fill ? mem[mem_index] : 0)) + p_cnt;
+		mem[mem_index] <= p_cnt;
 		if (mem_index == NUM_MEM - 1)
 		  begin
 		     mem_fill <= 1;
@@ -153,16 +154,16 @@ module tinytrng #(parameter integer NUM_UNITS = 1,
 		     if (avarage < 2)
 		       begin
 			  // ds up dr down
-			  sdelay <= { sdelay[1:0], 1 };
-			  rdelay <= { 0, rdelay[2:1] };
+			  sdelay <= 3'b011; // { sdelay[1:0], 1 };
+			  rdelay <= 3'b000; // { 0, rdelay[2:1] };
 			  metastable <= 0;
 		       end
 		     else if (avarage > 13)
 		       begin
 			  // ds down dr up
-			  sdelay <= { 0, sdelay[2:1] };
-			  rdelay <= { rdelay[1:0], 1 };
-			  metastable <= 0;
+			  sdelay <= 3'b000; // { 0, sdelay[2:1] };
+			  rdelay <= 3'b011; // { rdelay[1:0], 1 };
+			  metastable <= 1;
 		       end
 		     else
 		       begin
