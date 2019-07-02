@@ -151,19 +151,19 @@ module tinytrng #(parameter integer NUM_UNITS = 1,
 		mem_index <= mem_index + 1;
 		if (mem_fill)
 		  begin
-		     if (avarage < 2)
+		     if (avarage < 4)
 		       begin
 			  // ds up dr down
-			  sdelay <= 3'b011; // { sdelay[1:0], 1 };
+			  sdelay <= { sdelay[1:0], 1 };
 			  rdelay <= 3'b000; // { 0, rdelay[2:1] };
 			  metastable <= 0;
 		       end
-		     else if (avarage > 13)
+		     else if (avarage > 12)
 		       begin
 			  // ds down dr up
-			  sdelay <= 3'b000; // { 0, sdelay[2:1] };
-			  rdelay <= 3'b011; // { rdelay[1:0], 1 };
-			  metastable <= 1;
+			  sdelay <= { 0, sdelay[2:1] };
+			  rdelay <= { rdelay[1:0], 1 };
+			  metastable <= 0;
 		       end
 		     else
 		       begin
